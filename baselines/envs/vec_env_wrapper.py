@@ -196,6 +196,7 @@ class FlightEnvVec(VecEnv):
 class FlightEnvVec(VecEnv):
     #
     def __init__(self, impl):
+        np.seterr(all='raise')
         self.wrapper = impl()
         self.num_obs = self.wrapper.getObsDim()
         self.num_acts = self.wrapper.getActDim()

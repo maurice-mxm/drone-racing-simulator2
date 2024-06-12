@@ -5,6 +5,7 @@ import logging
 from threading import Thread
 import main as dynamics
 import math
+import random
 
 
 class VecEnv:
@@ -20,13 +21,15 @@ class VecEnv:
             self.cfg = config_path
         else:
             raise ValueError("Unsupported config format")
+    
+        np.seterr(all='raise')
 
         self.init()
 
     def init(self):
         self.unity_render = self.cfg["env"]["render"]
         self.seed = self.cfg["env"]["seed"]
-        self.num_envs = self.cfg["env"]["num_envs"]
+        self.num_envs = 1#self.cfg["env"]["num_envs"]
         self.scene_id = self.cfg["env"]["scene_id"]
 
         self.envs = [EnvBase() for _ in range(self.num_envs)]
@@ -139,7 +142,7 @@ class VecEnv:
         if done:
 
             obs = self.envs[agent_id].reset()
-            reward -= 0.2
+            reward -= 2
 
         return obs, reward, done, extra_info
 
@@ -150,9 +153,16 @@ class VecEnv:
 
 class EnvBase:
     def __init__(self):
-        self.initial_state = np.asarray([0.0, 0.0, 3.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        self.initial_state = np.asarray([0.1, 0.1, 3.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        self.initial_state = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        for i in range(13):
+            if i == 2:
+                self.initial_state[i] = 3.0
+            else:
+                self.initial_state[i] *= random.random()
+
         self.state = self.initial_state.copy()
-        self.obs_dim = 12
+        self.obs_dim = 13
         self.act_dim = 4
 
 
@@ -163,10 +173,10 @@ class EnvBase:
         return self.act_dim
 
     def reset(self):
-        #old_state = self.state.copy()
+        old_state = self.state.copy()
         self.state = self.initial_state.copy()
 
-        return self.state
+        return old_state
 
     def step(self, act):
 
@@ -177,8 +187,9 @@ class EnvBase:
 	
     def is_terminal_state(self):
         x, y, z = self.state[0], self.state[1], self.state[2]
+        r, p, y = self.state[10], self.state[11], self.state[12]
 
-        if x > 3 or x < -3 or y > 3 or y < -3 or z > 8 or z < 0.02:
+        if x > 3 or x < -3 or y > 3 or y < -3 or z > 6 or z < 0.02 or r > 1000 or p > 1000 or y > 1000 or r < -1000 or p < -1000 or y < -1000:
             return True
         else:
             return False
