@@ -28,7 +28,7 @@ Um von dem Code Gebrauch machen zu können, müssen noch zwei Abhängigkeit von 
 
 Anschliessend müssen noch die zwei Verzeichnisse SIM und BASELINES zum $PYTHONPATH hinzugefügt werden (dies muss jedes Mal bei neuen Start des Environments geschehen):
 ```bash
-  export PYTHONPATH="/.../sim/:/.../baselines
+  export PYTHONPATH="/.../drone-racing-simulator/
 ```
 für (...) muss der absolute Pfad zum Verzeichnis stehen. 
 ## Usage/Examples
