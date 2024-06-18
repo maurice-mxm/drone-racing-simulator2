@@ -35,7 +35,7 @@ class EnvWrapper(gym.Env):
         self.env.setSeed(seed)
 
     def step(self, action):
-	"""
+	    """
         pos_before = self.observation[:3]
 
         _ = self.env.step(action, self.observation)
@@ -43,10 +43,7 @@ class EnvWrapper(gym.Env):
         pos_now = self.obs()[:3]
 
         self.reward = self.rewardfunc(action, pos_before, pos_now)
-	"""
-        
-        
-
+	    """
         self.reward = self.env.step(action, self.observation)
         terminal_reward = 0.0
         self.done = self.env.isTerminalState(terminal_reward)

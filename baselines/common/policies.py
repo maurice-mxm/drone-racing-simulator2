@@ -8,12 +8,19 @@ from gym.spaces import Discrete
 
 from stable_baselines.common.tf_util import batch_to_seq, seq_to_batch
 from stable_baselines.common.tf_layers import conv, linear, conv_to_fc, lstm
-# from stable_baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
-#     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
 from stable_baselines.common.input import observation_input
-#
+
 from baselines.common.distributions import make_proba_dist_type, CategoricalProbabilityDistribution, \
     MultiCategoricalProbabilityDistribution, DiagGaussianProbabilityDistribution, BernoulliProbabilityDistribution
+
+"""
+---------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                policies.py
+                                                                -----------
+                                            Implementation of stable_baselines.common.policies.py
+                                            from OPENAI Baselines with some minor adjustments.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+"""
 
 
 def nature_cnn(scaled_images, **kwargs):

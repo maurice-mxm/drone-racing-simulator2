@@ -1,0 +1,65 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-18-41-51
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 5.4      |
+| ep_reward_mean     | -inf     |
+| explained_variance | nan      |
+| fps                | 7568     |
+| n_updates          | 1        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 250      |
+| time_elapsed       | 0.00135  |
+| total_timesteps    | 25000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 0        |
+| ep_reward_mean     | 0        |
+| explained_variance | nan      |
+| fps                | 43189    |
+| n_updates          | 2        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 500      |
+| time_elapsed       | 4.07     |
+| total_timesteps    | 50000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 0        |
+| ep_reward_mean     | 0        |
+| explained_variance | nan      |
+| fps                | 45957    |
+| n_updates          | 3        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 750      |
+| time_elapsed       | 6.13     |
+| total_timesteps    | 75000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 0        |
+| ep_reward_mean     | 0        |
+| explained_variance | nan      |
+| fps                | 45465    |
+| n_updates          | 4        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 1000     |
+| time_elapsed       | 8.18     |
+| total_timesteps    | 100000   |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------

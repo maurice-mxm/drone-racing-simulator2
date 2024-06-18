@@ -5,10 +5,16 @@ from gym import spaces
 
 from stable_baselines.common.tf_layers import linear
 
-EPS = 1e-6  # Avoid NaN (prevents division by zero or log of zero)
-# CAP the standard deviation of the actor
-LOG_STD_MAX = 2
-LOG_STD_MIN = -20
+
+"""
+---------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                distributions.py
+                                                                ----------------
+                                            Implementation of stable_baselines.common.distributions.py
+                                            from OPENAI Baselines with some minor adjustments.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+"""
+
 
 class ProbabilityDistribution(object):
     """
@@ -392,7 +398,6 @@ class DiagGaussianProbabilityDistribution(ProbabilityDistribution):
         self.flat = flat
         mean, logstd = tf.split(axis=len(flat.shape) - 1, num_or_size_splits=2, value=flat)
         self.mean =  mean
-        # self.logstd = tf.clip_by_value(logstd, LOG_STD_MIN, LOG_STD_MAX)
         self.logstd = logstd
         self.std = tf.exp(logstd)
         super(DiagGaussianProbabilityDistribution, self).__init__()

@@ -126,9 +126,9 @@ class VecEnv:
 
     def per_agent_step(self, agent_id, act):
 
-        obs, reward = self.envs[agent_id].step(act)
+        obs, reward, done = self.envs[agent_id].step(act)
 
-        done = self.envs[agent_id].is_terminal_state()
+        #done = self.envs[agent_id].is_terminal_state()
 
         for i in range(len(obs)):
             if math.isnan(obs[i]):
@@ -142,19 +142,16 @@ class VecEnv:
         if done:
 
             obs = self.envs[agent_id].reset()
-            reward -= 2
+            reward -= 0.02
 
         return obs, reward, done, extra_info
 
-    def curriculum_update(self):
-        for env in self.envs:
-            env.curriculum_update()
 
 
 class EnvBase:
     def __init__(self):
-        self.initial_state = np.asarray([0.1, 0.1, 3.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
-        self.initial_state = np.asarray([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        self.initial_state = np.array([0.1, 0.1, 3.0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1])
+        self.initial_state = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         for i in range(13):
             if i == 2:
                 self.initial_state[i] = 3.0
@@ -164,6 +161,7 @@ class EnvBase:
         self.state = self.initial_state.copy()
         self.obs_dim = 13
         self.act_dim = 4
+        self.old_control = np.array([0.0, 0.0, 0.0, 0.0])
 
 
     def get_obs_dim(self):
@@ -176,20 +174,27 @@ class EnvBase:
         old_state = self.state.copy()
         self.state = self.initial_state.copy()
 
+        self.old_control = np.array([0.0, 0.0, 0.0, 0.0])
+
         return old_state
 
     def step(self, act):
 
-        self.state, reward = dynamics.dynamics(self.state, act)
+        self.state, reward, done = dynamics.dynamics(self.state, act, self.old_control)
+        #print(self.state[1])
         #print('act:', act, 'obs:', self.state)
+        self.old_control = act.copy()
 
-        return self.state, reward
+        return self.state, reward, done
 	
     def is_terminal_state(self):
         x, y, z = self.state[0], self.state[1], self.state[2]
         r, p, y = self.state[10], self.state[11], self.state[12]
 
-        if x > 3 or x < -3 or y > 3 or y < -3 or z > 6 or z < 0.02 or r > 1000 or p > 1000 or y > 1000 or r < -1000 or p < -1000 or y < -1000:
+        print(y)
+
+        if x > 3 or x < -3 or y > 3 or y < -3 or z > 6 or z < 0.02 or r > 100000 or p > 100000 or y > 100000 or r < -100000 or p < -100000 or y < -100000:
+            #print(x, y, z, r, p, y)
             return True
         else:
             return False

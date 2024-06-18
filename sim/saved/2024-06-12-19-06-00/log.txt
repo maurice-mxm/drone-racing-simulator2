@@ -1,0 +1,49 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-19-06-00
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 1.6e-05  |
+| ep_len_mean        | 6.19     |
+| ep_reward_mean     | 1.2      |
+| explained_variance | nan      |
+| fps                | 7170     |
+| n_updates          | 1        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 250      |
+| time_elapsed       | 0.00123  |
+| total_timesteps    | 25000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 0        |
+| ep_reward_mean     | 0        |
+| explained_variance | nan      |
+| fps                | 45498    |
+| n_updates          | 2        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 500      |
+| time_elapsed       | 4.14     |
+| total_timesteps    | 50000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 0.0      |
+| ep_len_mean        | 0        |
+| ep_reward_mean     | 0        |
+| explained_variance | nan      |
+| fps                | 46913    |
+| n_updates          | 3        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 750      |
+| time_elapsed       | 6.22     |
+| total_timesteps    | 75000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------

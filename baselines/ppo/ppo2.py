@@ -1,18 +1,27 @@
 import time
-#
+
 import gym
+
 import sys
 import numpy as np
 import tensorflow as tf
 from collections import deque
-#
 from stable_baselines.common import explained_variance, ActorCriticRLModel, tf_util, SetVerbosity, TensorboardWriter
 from stable_baselines.common.runners import AbstractEnvRunner
 from stable_baselines.common.schedules import get_schedule_fn
 from stable_baselines.common.tf_util import total_episode_reward_logger
 from stable_baselines.common.math_util import safe_mean
-#
 from baselines.common.policies import ActorCriticPolicy, RecurrentActorCriticPolicy
+
+
+"""
+---------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                ppo2.py
+                                                                -------
+                                            Implementation of stable_baselines.ppo2.ppo2.py
+                                            from OPENAI Baselines with some minor adjustments.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+"""
 
 class PPO2(ActorCriticRLModel):
     """
@@ -146,8 +155,6 @@ class PPO2(ActorCriticRLModel):
                     self.clip_range_ph = tf.placeholder(tf.float32, [], name="clip_range_ph")
 
                     neglogpac = train_model.proba_distribution.tanh_neglogp(self.action_ph)
-                    # neglogpac_u = train_model.proba_distribution.neglogp(self.action_ph)
-                    # neglogpac = tf.reduce_sum( tf.log(1-self.action_ph**2+1e-6), axis=1) - neglogpac_u
                     self.entropy = tf.reduce_mean(train_model.proba_distribution.entropy())
 
                     vpred = train_model.value_flat
@@ -187,8 +194,7 @@ class PPO2(ActorCriticRLModel):
                     self.approxkl = .5 * tf.reduce_mean(tf.square(neglogpac - self.old_neglog_pac_ph))
                     self.clipfrac = tf.reduce_mean(tf.cast(tf.greater(tf.abs(ratio - 1.0),
                         self.clip_range_ph), tf.float32))
-                    # self.kl_loss = tf.maximum(tf.reduce_mean(self.approxkl - 0.02 ), 0.0 )
-                    loss = self.pg_loss - self.entropy * self.ent_coef + self.vf_loss * self.vf_coef # + self.kl_loss
+                    loss = self.pg_loss - self.entropy * self.ent_coef + self.vf_loss * self.vf_coef
 
                     tf.summary.scalar('entropy_loss', self.entropy)
                     tf.summary.scalar('policy_gradient_loss', self.pg_loss)
@@ -326,7 +332,6 @@ class PPO2(ActorCriticRLModel):
             n_updates = total_timesteps // self.n_batch
             
             for update in range(1, n_updates + 1):
-                # Do the following except keyboard interrupt the learning process.
                 try:
                     assert self.n_batch % self.nminibatches == 0
                     batch_size = self.n_batch // self.nminibatches
@@ -336,15 +341,13 @@ class PPO2(ActorCriticRLModel):
                     cliprange_vf_now = cliprange_vf(frac)
 
                     t_start = time.time()
-                    # Unpack
                     obs, returns, masks, actions, values, neglogpacs, states, ep_infos, true_reward = runner.run()
-                    # # add by Yunlong
                     t_now = time.time()
                     fps = int(self.n_batch / (t_now - t_start))
 
                     self.ep_info_buf.extend(ep_infos)
                     mb_loss_vals = []
-                    if states is None:  # nonrecurrent version
+                    if states is None:  
                         update_fac = self.n_batch // self.nminibatches // self.noptepochs + 1
                         inds = np.arange(self.n_batch)
                         for epoch_num in range(self.noptepochs):
@@ -357,7 +360,7 @@ class PPO2(ActorCriticRLModel):
                                 slices = (arr[mbinds] for arr in (obs, returns, masks, actions, values, neglogpacs))
                                 mb_loss_vals.append(self._train_step(lr_now, cliprange_now, *slices, writer=writer,
                                                                     update=timestep, cliprange_vf=cliprange_vf_now))
-                    else:  # recurrent version
+                    else: 
                         update_fac = self.n_batch // self.nminibatches // self.noptepochs // self.n_steps + 1
                         assert self.n_envs % self.nminibatches == 0
                         env_indices = np.arange(self.n_envs)
@@ -378,9 +381,6 @@ class PPO2(ActorCriticRLModel):
                                                                     cliprange_vf=cliprange_vf_now))
 
                     loss_vals = np.mean(mb_loss_vals, axis=0)
-                    # # comment out by Yunlong
-                    # t_now = time.time()
-                    # fps = int(self.n_batch / (t_now - t_start))
 
                     if writer is not None:
                         total_episode_reward_logger(self.episode_reward,
@@ -405,13 +405,10 @@ class PPO2(ActorCriticRLModel):
                         logger.dumpkvs()
                     
                     if callback is not None:
-                        # Only stop training if return value is False, not when it is None. This is for backwards
-                        # compatibility with callbacks that have no return statement.
                         if callback(locals(), globals()) is False:
                             break
                 except KeyboardInterrupt:
                     print("You have stopped the learning process by keyboard interrupt. Model Parameter is saved. \n")
-                    # You can actually save files using the instance of self. save the model parameters. 
                     self.save(log_dir + "_Iteration_{}".format(update))
                     sys.exit()
             return self
@@ -478,8 +475,7 @@ class Runner(AbstractEnvRunner):
         mb_obs, mb_rewards, mb_actions, mb_values, mb_dones, mb_neglogpacs, mb_tanh_actions = [], [], [], [], [], [], []
         mb_states = self.states
         ep_infos = []
-        
-        # self.env.connectFlightmare()        
+      
         for _ in range(self.n_steps):
             tanh_action, actions, values, self.states, neglogpacs = self.model.step(self.obs, self.states, self.dones)
             mb_obs.append(self.obs.copy())
@@ -489,11 +485,7 @@ class Runner(AbstractEnvRunner):
             mb_neglogpacs.append(neglogpacs)
             mb_dones.append(self.dones)
             clipped_actions = tanh_action
-            # Clip the actions to avoid out of bound error
-            # if isinstance(self.env.action_space, gym.spaces.Box):
-            #     clipped_actions = np.clip(actions, self.env.action_space.low, self.env.action_space.high)
             self.obs[:], rewards, self.dones, infos = self.env.step(clipped_actions)
-            #
             self.model.num_timesteps += self.n_envs
 
             if self.callback is not None:
@@ -513,7 +505,6 @@ class Runner(AbstractEnvRunner):
         mb_obs = np.asarray(mb_obs, dtype=self.obs.dtype)
         mb_rewards = np.asarray(mb_rewards, dtype=np.float32)
         mb_actions = np.asarray(mb_actions)
-        # mb_mean_actions = np.asarray(mb_tanh_actions)
         mb_values = np.asarray(mb_values, dtype=np.float32)
         mb_neglogpacs = np.asarray(mb_neglogpacs, dtype=np.float32)
         mb_dones = np.asarray(mb_dones, dtype=np.bool)

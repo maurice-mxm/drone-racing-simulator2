@@ -1,0 +1,17 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-19-17-04
+---------------------------------
+| approxkl           | nan      |
+| clipfrac           | 8e-06    |
+| ep_len_mean        | 5.44     |
+| ep_reward_mean     | 1.06     |
+| explained_variance | nan      |
+| fps                | 7546     |
+| n_updates          | 1        |
+| policy_entropy     | nan      |
+| policy_loss        | nan      |
+| serial_timesteps   | 250      |
+| time_elapsed       | 0.00136  |
+| total_timesteps    | 25000    |
+| true_reward        | nan      |
+| value_loss         | nan      |
+---------------------------------

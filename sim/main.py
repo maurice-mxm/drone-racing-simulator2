@@ -99,31 +99,31 @@ def rotation_matrix(phi, theta, psi):
     return R
     
 @jit(nopython=True)
-def dynamics(state, control):
+def dynamics(state, control, old_control):
 
     #np.seterr(all='raise')
     G = 9.81
     
     thrust_to_weight = 2.25
 
-    time_step = 0.05
-    m = 1.5
+    time_step = 0.02
+    m = 0.027 # 1.5
     GRAVITY = G * m
-    kF = 8.5e-06 #1e-5
-    kM = 1e-06
-    l = 0.14
-    HOVER_RPM = 650
-    MAX_RPM = 1100
+    kF = 3.16e-10 #8.5e-06 #1e-5
+    kM = 7.94e-12 #1e-06
+    l = 0.0397 #0.14
+    HOVER_RPM = 16000 # 650
+    MAX_RPM = 24000 #1100
     air_density = 1.225
     drag_coefficient = 0.0000806428
     reference_area = 0.1
-    J = np.array([[0.0291, 0, 0],
-                 [0, 0.0291, 0], 
-                 [0, 0, 0.055]])
+    J = np.array([[1.4e-05, 0, 0], # 0.0291
+                 [0, 1.4e-05, 0], # 0.0291
+                 [0, 0, 2.17e-05]]) # 0.055
     
-    J_INV = np.array([[1/0.0291, 0, 0],
-                 [0, 1/0.0291, 0], 
-                 [0, 0, 1/0.055]])
+    J_INV = np.array([[1/0.0000145, 0, 0],
+                 [0, 1/0.0000145, 0], 
+                 [0, 0, 1/0.0000217]])
 
     
     rotor_inertia = 0.0001
@@ -153,8 +153,8 @@ def dynamics(state, control):
 
     z_torque = (-z_torques[0] + z_torques[1] - z_torques[2] + z_torques[3])
 
-    x_torque = (forces[0] + forces[1] - forces[2] - forces[3]) * (l)
-    y_torque = (- forces[0] + forces[1] + forces[2] - forces[3]) * (l)
+    x_torque = (forces[1] - forces[3]) * l/np.sqrt(2)
+    y_torque = (-forces[0] + forces[2]) * l/np.sqrt(2)
     
 
     torques = np.array([x_torque, y_torque, z_torque])
@@ -172,6 +172,8 @@ def dynamics(state, control):
     position = position + time_step * velocity
     quaternion = integrateQ(quaternion, rpy_rates, time_step)
 
+    #print(position[1])
+
 
 
 
@@ -183,15 +185,37 @@ def dynamics(state, control):
                 rpy_rates[0], rpy_rates[1], rpy_rates[2]])
     
     goal_state = np.asarray([0.0, 0.0, 5.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+    #act_reward = -0.02 * np.sqrt((old_control[0]-control[0])**2 + (old_control[1]-control[1])**2 + (old_control[2]-control[2])**2 + (old_control[3]-control[3])**2) 
     
-    position_reward = -0.02 * np.sqrt((obs[0]-goal_state[0])**2 + (obs[1]-goal_state[1])**2 + (obs[2]-goal_state[2])**2)
+    position_reward = -0.002 * np.sqrt((obs[0]-goal_state[0])**2 + (obs[1]-goal_state[1])**2 + (obs[2]-goal_state[2])**2)
     orientation_reward = -0.002 * np.sqrt((obs[3]-goal_state[3])**2 + (obs[4]-goal_state[4])**2 + (obs[5]-goal_state[5])**2 + (obs[6]-goal_state[6])**2)
-    velocity_reward = -0.00002 * np.sqrt((obs[7]-goal_state[7])**2 + (obs[8]-goal_state[8])**2 + (obs[9]-goal_state[9])**2)
-    rpy_rates_reward = -0.00002 * np.sqrt((obs[10]-goal_state[10])**2 + (obs[11]-goal_state[11])**2 + (obs[12]-goal_state[12])**2)
+    velocity_reward = -0.0002 * np.sqrt((obs[7]-goal_state[7])**2 + (obs[8]-goal_state[8])**2 + (obs[9]-goal_state[9])**2)
+    rpy_rates_reward = -0.0002 * np.sqrt((obs[10]-goal_state[10])**2 + (obs[11]-goal_state[11])**2 + (obs[12]-goal_state[12])**2)
 
-    total_reward = position_reward + orientation_reward + velocity_reward + rpy_rates_reward
+    total_reward = position_reward + orientation_reward + velocity_reward + rpy_rates_reward #+ act_reward
 
-    total_reward += 0.2
+    total_reward += 0.1
+
+    x = obs[0]
+    y = obs[1]
+    z = obs[2]
+    r = obs[10]
+    p = obs[11]
+    y = obs[12]
+
+    done = False
+
+    #print(x, y, z, r, p, y)
+    #print(position[1])
+    #print(y)
+
+    if position[0] > 3 or position[0] < -3 or position[1] > 3 or position[1] < -3 or position[2] > 6 or position[2] < 0.2 or rpy_rates[0] > 6 or rpy_rates[1] > 6 or rpy_rates[2] > 6 or rpy_rates[1] < -6 or rpy_rates[2] < -6 or rpy_rates[2] < -6:
+
+        #print(position[0], position[1], position[2], rpy_rates[0], rpy_rates[1], rpy_rates[2])
+        done = True
+
+
 
     #print(obs[10:13])
 
@@ -202,7 +226,7 @@ def dynamics(state, control):
 
     #print(position, quaternion, velocity, rpy_rates)
 
-    return obs, total_reward
+    return obs, total_reward, done
     """
     def dynamics(state, control):
 

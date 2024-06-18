@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import matplotlib.gridspec as gridspec
-from mpl_toolkits import mplot3d
-import time
+
 
 def test_model(env, model, render=False):
     #

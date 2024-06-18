@@ -1,0 +1,65 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-19-21-11
+-----------------------------------
+| approxkl           | 555550.25  |
+| clipfrac           | 0.15571201 |
+| ep_len_mean        | 10         |
+| ep_reward_mean     | 1.95       |
+| explained_variance | -9.77      |
+| fps                | 7541       |
+| n_updates          | 1          |
+| policy_entropy     | 5.6759677  |
+| policy_loss        | 0.08651226 |
+| serial_timesteps   | 250        |
+| time_elapsed       | 0.000651   |
+| total_timesteps    | 25000      |
+| true_reward        | 0.18902168 |
+| value_loss         | 331.5603   |
+-----------------------------------
+------------------------------------
+| approxkl           | 49.72323    |
+| clipfrac           | 0.104559995 |
+| ep_len_mean        | 10          |
+| ep_reward_mean     | 1.95        |
+| explained_variance | -7.44       |
+| fps                | 55736       |
+| n_updates          | 2           |
+| policy_entropy     | 5.6779175   |
+| policy_loss        | 0.10428433  |
+| serial_timesteps   | 500         |
+| time_elapsed       | 3.88        |
+| total_timesteps    | 50000       |
+| true_reward        | 0.18902168  |
+| value_loss         | 61.70936    |
+------------------------------------
+-----------------------------------
+| approxkl           | 17.779778  |
+| clipfrac           | 0.06868799 |
+| ep_len_mean        | 10         |
+| ep_reward_mean     | 1.95       |
+| explained_variance | -6.05      |
+| fps                | 58014      |
+| n_updates          | 3          |
+| policy_entropy     | 5.683942   |
+| policy_loss        | 0.07039184 |
+| serial_timesteps   | 750        |
+| time_elapsed       | 4.74       |
+| total_timesteps    | 75000      |
+| true_reward        | 0.18902168 |
+| value_loss         | 28.008114  |
+-----------------------------------
+-----------------------------------
+| approxkl           | 0.7619821  |
+| clipfrac           | 0.051844   |
+| ep_len_mean        | 10         |
+| ep_reward_mean     | 1.95       |
+| explained_variance | -4.31      |
+| fps                | 58098      |
+| n_updates          | 4          |
+| policy_entropy     | 5.688636   |
+| policy_loss        | 0.04114779 |
+| serial_timesteps   | 1000       |
+| time_elapsed       | 5.59       |
+| total_timesteps    | 100000     |
+| true_reward        | 0.18902168 |
+| value_loss         | 11.376752  |
+-----------------------------------

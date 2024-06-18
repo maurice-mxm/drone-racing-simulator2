@@ -1,0 +1,65 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-21-32-31
+--------------------------------------
+| approxkl           | 2.2892163e+16 |
+| clipfrac           | 0.89400005    |
+| ep_len_mean        | 0.99          |
+| ep_reward_mean     | -0.107        |
+| explained_variance | -1.4e+13      |
+| fps                | 85            |
+| n_updates          | 1             |
+| policy_entropy     | 5.675747      |
+| policy_loss        | 0.35955495    |
+| serial_timesteps   | 250           |
+| time_elapsed       | 0.000926      |
+| total_timesteps    | 250           |
+| true_reward        | -0.10748055   |
+| value_loss         | 618033860.0   |
+--------------------------------------
+--------------------------------------
+| approxkl           | 1.7634861e+16 |
+| clipfrac           | 0.8984        |
+| ep_len_mean        | 0.99          |
+| ep_reward_mean     | -0.0579       |
+| explained_variance | -1.03e+11     |
+| fps                | 1689          |
+| n_updates          | 2             |
+| policy_entropy     | 5.675204      |
+| policy_loss        | 0.05293238    |
+| serial_timesteps   | 500           |
+| time_elapsed       | 3.09          |
+| total_timesteps    | 500           |
+| true_reward        | -0.058667656  |
+| value_loss         | 16548507.0    |
+--------------------------------------
+-------------------------------------------
+| approxkl           | 2812724200000000.0 |
+| clipfrac           | 0.8967999          |
+| ep_len_mean        | 0.99               |
+| ep_reward_mean     | -0.0579            |
+| explained_variance | -1.38e+11          |
+| fps                | 1686               |
+| n_updates          | 3                  |
+| policy_entropy     | 5.673752           |
+| policy_loss        | 0.05965603         |
+| serial_timesteps   | 750                |
+| time_elapsed       | 3.27               |
+| total_timesteps    | 750                |
+| true_reward        | -0.059001245       |
+| value_loss         | 8603315.0          |
+-------------------------------------------
+-------------------------------------------
+| approxkl           | 2770499300000000.0 |
+| clipfrac           | 0.8964             |
+| ep_len_mean        | 0.99               |
+| ep_reward_mean     | -0.082             |
+| explained_variance | -1.33e+09          |
+| fps                | 1697               |
+| n_updates          | 4                  |
+| policy_entropy     | 5.6717873          |
+| policy_loss        | 0.3476216          |
+| serial_timesteps   | 1000               |
+| time_elapsed       | 3.46               |
+| total_timesteps    | 1000               |
+| true_reward        | -0.08302463        |
+| value_loss         | 2887933.5          |
+-------------------------------------------
