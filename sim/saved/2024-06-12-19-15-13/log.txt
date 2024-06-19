@@ -1,1 +1,0 @@
-Logging to /home/maurice/workspace/drone-racing-simulator/sim/saved/2024-06-12-19-15-13

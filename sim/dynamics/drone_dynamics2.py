@@ -496,7 +496,7 @@ def dynamics(state, control, old_control):
     
     done = False
     if (position[0] > 3.5 or position[0] < -3.5 or position[1] < -0.5 or position[1] > 3.5 or 
-        position[2] > 1.5 or position[2] < 0.5 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
+        position[2] > 1.6 or position[2] < 1.0 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
         angular_velocity[2] > 100 or angular_velocity[0] < -100 or angular_velocity[1] < -100 or angular_velocity[2] < -100):
         done = True
         #print(obs)

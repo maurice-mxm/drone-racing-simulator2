@@ -1,2 +1,0 @@
-fps,time_elapsed,n_updates,serial_timesteps,ep_reward_mean,ep_len_mean,clipfrac,value_loss,approxkl,explained_variance,policy_entropy,true_reward,total_timesteps,policy_loss
-6052,0.001314401626586914,1,250,0.09366882853209972,0.63,0.233112,1.1841282,0.054848313,-5.428595542907715,5.6765704,-1.1857545,25000,0.03685556

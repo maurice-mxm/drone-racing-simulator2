@@ -4,6 +4,17 @@ from tensorboard import program
 import webbrowser
 
 
+"""
+---------------------------------------------------------------------------------------------------------------------------------------------------
+                                                                util.py
+                                                                ----------------
+                                            TensorboardLauncher for having information graph
+                                            immediately during the training time for quick 
+                                            evaluation.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+"""
+
+
 class ConfigurationSaver:
     def __init__(self, log_dir):
         self._data_dir = log_dir + '/' + \

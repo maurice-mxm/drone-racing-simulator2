@@ -17,7 +17,7 @@ from sim.vec_env.vec_processor import VectorEnvironment
 
 def main():
 
-    args = {"train" : False, "model" : "models/2024-06-19-00-11-48_Iteration_16.zip"}
+    args = {"train" : False, "model" : "models/2024-06-19-18-09-29_Iteration_1604.zip"}
 
     if args["train"]:
         args["n_envs"] = 100

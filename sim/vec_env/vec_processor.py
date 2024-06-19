@@ -170,13 +170,13 @@ class BaseEnvironment:
 
         for i in range(12):
             if i == 0:
-                self.state[i] =  random.uniform(-3, 3) 
+                self.state[i] = random.uniform(-3, 3) 
             
-            if i == 1:
-                self.state[i] =  random.uniform(0, 3) 
+            elif i == 1:
+                self.state[i] = random.uniform(0, 3) 
 
             elif i == 2:
-                self.state[i] = random.uniform(0.7, 1.3) 
+                self.state[i] = random.uniform(1.1, 1.5) 
 
             else:
                 self.state[i] = random.uniform(-0.1, 0.1)
@@ -221,16 +221,22 @@ class BaseEnvironment:
         Returns:
             np.ndarray: Sate of the environment.
         """
-
+        self.state = np.empty(12)
         for i in range(12):
-            if i < 2:
-                self.state[i] =  random.uniform(-3, 3) 
+            if i == 0:
+
+                self.state[i] = random.uniform(-3, 3) 
+
+            elif i == 1:
+                self.state[i] = random.uniform(0, 3) 
 
             elif i == 2:
-                self.state[i] = random.uniform(0.3, 1.8) 
+                self.state[i] = random.uniform(1.1, 1.5) 
 
             else:
                 self.state[i] = random.uniform(-0.1, 0.1)
+
+        
 
 
         self.quaternion = self.initial_quat.copy()
@@ -247,7 +253,10 @@ class BaseEnvironment:
 
         Returns:
             tuple: New state and reward.
+
         """
+
+        #print(self.state)
 
         self.state, reward, done = drone_dynamics2.dynamics(self.state, act, self.old_control)
 

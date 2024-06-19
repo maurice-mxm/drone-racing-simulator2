@@ -1,2 +1,0 @@
-clipfrac,true_reward,ep_reward_mean,explained_variance,fps,value_loss,policy_loss,time_elapsed,policy_entropy,n_updates,approxkl,serial_timesteps,ep_len_mean,total_timesteps
-1.19999995e-05,nan,1.0617869675159455,nan,7402,nan,nan,0.0015141963958740234,nan,1,nan,250,5.46,25000
