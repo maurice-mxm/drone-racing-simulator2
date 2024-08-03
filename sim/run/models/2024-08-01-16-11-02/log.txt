@@ -1,0 +1,33 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/run/models/2024-08-01-16-11-02
+--------------------------------------
+| approxkl           | 0.016851205   |
+| clipfrac           | 0.19811599    |
+| ep_len_mean        | 249           |
+| ep_reward_mean     | 18.6          |
+| explained_variance | 0.656         |
+| fps                | 4134          |
+| n_updates          | 1             |
+| policy_entropy     | 1.9295399     |
+| policy_loss        | -0.0010863404 |
+| serial_timesteps   | 250           |
+| time_elapsed       | 0.000661      |
+| total_timesteps    | 25000         |
+| true_reward        | 0.07424269    |
+| value_loss         | 0.039386984   |
+--------------------------------------
+--------------------------------------
+| approxkl           | 0.0054884194  |
+| clipfrac           | 0.060472      |
+| ep_len_mean        | 249           |
+| ep_reward_mean     | 18.6          |
+| explained_variance | 0.616         |
+| fps                | 60075         |
+| n_updates          | 2             |
+| policy_entropy     | 1.920021      |
+| policy_loss        | -0.0020020618 |
+| serial_timesteps   | 500           |
+| time_elapsed       | 6.58          |
+| total_timesteps    | 50000         |
+| true_reward        | 0.07401786    |
+| value_loss         | 0.043625657   |
+--------------------------------------

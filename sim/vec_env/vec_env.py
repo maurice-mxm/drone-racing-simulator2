@@ -38,7 +38,7 @@ class MainVecEnv(VecEnv):
             np.ones(self.num_obs) * -np.Inf,
             np.ones(self.num_obs) * np.Inf, dtype=np.float32)
         self._action_space = spaces.Box(
-            low=np.ones(self.num_acts) * -1., #-1
+            low=np.ones(self.num_acts) * -1., 
             high=np.ones(self.num_acts) * 1.,
             dtype=np.float32)
         self._observation = np.zeros([self.num_envs, self.num_obs],
@@ -47,7 +47,7 @@ class MainVecEnv(VecEnv):
         self._done = np.zeros((self.num_envs), dtype=np.bool)
         self.rewards = [[] for _ in range(self.num_envs)]
 
-        self.max_episode_steps = 300
+        self.max_episode_steps = 1000
 
     def seed(self, seed=0):
 

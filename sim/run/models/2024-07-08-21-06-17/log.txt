@@ -1,0 +1,1 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/run/models/2024-07-08-21-06-17

@@ -1,0 +1,81 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/run/models/2024-07-08-21-07-17
+--------------------------------------
+| approxkl           | 0.002563055   |
+| clipfrac           | 0.017272      |
+| ep_len_mean        | 0             |
+| ep_reward_mean     | 0             |
+| explained_variance | -6.39e+04     |
+| fps                | 4478          |
+| n_updates          | 1             |
+| policy_entropy     | 5.6718545     |
+| policy_loss        | -0.0013707245 |
+| serial_timesteps   | 250           |
+| time_elapsed       | 0.00144       |
+| total_timesteps    | 25000         |
+| true_reward        | -0.47999886   |
+| value_loss         | 0.010868843   |
+--------------------------------------
+---------------------------------------
+| approxkl           | 0.0017466979   |
+| clipfrac           | 0.008884       |
+| ep_len_mean        | 0              |
+| ep_reward_mean     | 0              |
+| explained_variance | -4.2e+04       |
+| fps                | 41386          |
+| n_updates          | 2              |
+| policy_entropy     | 5.6640096      |
+| policy_loss        | -0.00083294325 |
+| serial_timesteps   | 500            |
+| time_elapsed       | 7.18           |
+| total_timesteps    | 50000          |
+| true_reward        | -0.4799996     |
+| value_loss         | 0.005331505    |
+---------------------------------------
+---------------------------------------
+| approxkl           | 0.0017158829   |
+| clipfrac           | 0.0089         |
+| ep_len_mean        | 0              |
+| ep_reward_mean     | 0              |
+| explained_variance | -1.77e+04      |
+| fps                | 45084          |
+| n_updates          | 3              |
+| policy_entropy     | 5.6595907      |
+| policy_loss        | -0.00058145885 |
+| serial_timesteps   | 750            |
+| time_elapsed       | 9.22           |
+| total_timesteps    | 75000          |
+| true_reward        | -0.4799993     |
+| value_loss         | 0.0022501121   |
+---------------------------------------
+---------------------------------------
+| approxkl           | 0.0013649405   |
+| clipfrac           | 0.0066919997   |
+| ep_len_mean        | 0              |
+| ep_reward_mean     | 0              |
+| explained_variance | -7.7e+03       |
+| fps                | 46578          |
+| n_updates          | 4              |
+| policy_entropy     | 5.6556168      |
+| policy_loss        | -0.00059604703 |
+| serial_timesteps   | 1000           |
+| time_elapsed       | 11.2           |
+| total_timesteps    | 100000         |
+| true_reward        | -0.48000476    |
+| value_loss         | 0.0011216782   |
+---------------------------------------
+--------------------------------------
+| approxkl           | 0.0021567866  |
+| clipfrac           | 0.014792      |
+| ep_len_mean        | 0             |
+| ep_reward_mean     | 0             |
+| explained_variance | -5.57e+03     |
+| fps                | 45940         |
+| n_updates          | 5             |
+| policy_entropy     | 5.6497545     |
+| policy_loss        | -0.0005765545 |
+| serial_timesteps   | 1250          |
+| time_elapsed       | 13.2          |
+| total_timesteps    | 125000        |
+| true_reward        | -0.4800035    |
+| value_loss         | 0.00089430204 |
+--------------------------------------

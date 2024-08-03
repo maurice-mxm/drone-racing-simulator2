@@ -135,7 +135,7 @@ class VectorEnvironment:
 
         if done:
             observation = self.envs[env_id].reset()
-            reward -= 50
+            reward -= 10
 
         return observation, reward, done
 
@@ -176,11 +176,11 @@ class BaseEnvironment:
                 self.state[i] = random.uniform(0, 3) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.1, 1.5) 
+                self.state[i] = random.uniform(1.2, 1.4) 
 
             else:
-                self.state[i] = random.uniform(-0.1, 0.1)
-
+                self.state[i] = random.uniform(-0.001, 0.001)
+        #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         
         self.obs_dim = 12
@@ -231,12 +231,12 @@ class BaseEnvironment:
                 self.state[i] = random.uniform(0, 3) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.1, 1.5) 
+                self.state[i] = random.uniform(1.2, 1.4) 
 
             else:
-                self.state[i] = random.uniform(-0.1, 0.1)
+                self.state[i] = random.uniform(-0.001, 0.001)
 
-        
+        #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 
         self.quaternion = self.initial_quat.copy()

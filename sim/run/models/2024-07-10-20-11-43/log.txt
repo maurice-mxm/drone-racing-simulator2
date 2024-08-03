@@ -1,0 +1,49 @@
+Logging to /home/maurice/workspace/drone-racing-simulator/sim/run/models/2024-07-10-20-11-43
+------------------------------------
+| approxkl           | 0.060248606 |
+| clipfrac           | 0.402284    |
+| ep_len_mean        | 245         |
+| ep_reward_mean     | 18.1        |
+| explained_variance | 0.768       |
+| fps                | 4107        |
+| n_updates          | 1           |
+| policy_entropy     | 1.0719568   |
+| policy_loss        | 0.005152364 |
+| serial_timesteps   | 250         |
+| time_elapsed       | 0.000608    |
+| total_timesteps    | 25000       |
+| true_reward        | 0.07383929  |
+| value_loss         | 0.043017395 |
+------------------------------------
+--------------------------------------
+| approxkl           | 0.009347094   |
+| clipfrac           | 0.12018001    |
+| ep_len_mean        | 247           |
+| ep_reward_mean     | 18.2          |
+| explained_variance | 0.883         |
+| fps                | 72275         |
+| n_updates          | 2             |
+| policy_entropy     | 1.074897      |
+| policy_loss        | -0.0023322792 |
+| serial_timesteps   | 500           |
+| time_elapsed       | 6.59          |
+| total_timesteps    | 50000         |
+| true_reward        | 0.073269315   |
+| value_loss         | 0.01922211    |
+--------------------------------------
+--------------------------------------
+| approxkl           | 0.008594802   |
+| clipfrac           | 0.11675199    |
+| ep_len_mean        | 249           |
+| ep_reward_mean     | 18.3          |
+| explained_variance | 0.922         |
+| fps                | 69862         |
+| n_updates          | 3             |
+| policy_entropy     | 1.0737393     |
+| policy_loss        | -0.0020835495 |
+| serial_timesteps   | 750           |
+| time_elapsed       | 7.32          |
+| total_timesteps    | 75000         |
+| true_reward        | 0.07350104    |
+| value_loss         | 0.0114866365  |
+--------------------------------------
