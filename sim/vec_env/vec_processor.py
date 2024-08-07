@@ -249,13 +249,13 @@ class BaseEnvironment:
 
         for i in range(12):
             if i == 0:
-                self.state[i] = random.uniform(-3.5, 3.5) 
+                self.state[i] = random.uniform(-6.9, 6.9) 
             
             elif i == 1:
-                self.state[i] = random.uniform(-3.5, 3.5) 
+                self.state[i] = random.uniform(-6.9, 6.9) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.0, 2.1) 
+                self.state[i] = random.uniform(-0.9, 4.9) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
@@ -271,17 +271,26 @@ class BaseEnvironment:
 
         self.gates = GateFinder()
         
-        #for i in range(8):
-        #    x, y, z, k = random.uniform(-2.5, 2.5), random.uniform(-2.5, 2.5), 1.0, random.choice([-2.0, -1.0, 1.0, 2.0])
+        #for i in range(40):
+        #    x, y, z, k = random.uniform(-6.0, 6.0), random.uniform(-6.0, 6.0), random.uniform(0.0, 4.0), random.choice([-2.0, -1.0, 1.0, 2.0])
         #    self.gates.add_gate([x, y, z], [k])
 
-        self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        self.gates.add_gate([-3.0, 2.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        self.gates.add_gate([-1.5, 1.0, 2.0], [1.0])
+        self.gates.add_gate([1.5, -1.0, 2.0], [1.0])
+        self.gates.add_gate([3.0, -2.0, 1.0], [1.0])
+        self.gates.add_gate([3.0, 2.0, 1.0], [-1.0])
+        self.gates.add_gate([1.5, 1.0, 2.0], [-1.0])
+        self.gates.add_gate([-1.5, -1.0, 2.0], [-1.0])
+        self.gates.add_gate([-3.0, -2.0, 1.0], [-1.0])
+
+        """self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
         self.gates.add_gate([3.0, 3.0, 1.0], [-2.0])
         self.gates.add_gate([2.0, -2.0, 2.0], [-1.0])
         self.gates.add_gate([-2.0, -3.0, 2.0], [-1.0])
         self.gates.add_gate([-2.0, -3.0, 1.0], [1.0])
         self.gates.add_gate([0.0, 0.0, 1.0], [-1.0])
-        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])
+        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])"""
         #self.gates.add_gate([-3.0, -3.0, 1.0], [2.0])
 
         self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
@@ -323,6 +332,8 @@ class BaseEnvironment:
         
         self.initial_state = self.state
         #print(self.initial_state)
+
+        
 
         self.return_state = np.empty(13)
 
@@ -385,6 +396,8 @@ class BaseEnvironment:
         #    self.gates.add_gate([x, y, z], [k])
         
         self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
+
+        #print(self.gates.gates.tolist())
         
         #for i in range(12, 15):
         #    self.state[i] = self.gates.gates[1][i-12] - self.state[i-12]
