@@ -1,5 +1,9 @@
+
 import numpy as np
-from numba import jit
+from numba import jit, int32
+from numba.experimental import jitclass
+from numba.typed import List
+from numba.types import ListType
 
 """
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -29,6 +33,43 @@ from numba import jit
 """
 
 
+
+
+# Definiere die Spezifikationen für die Numba-Klasse
+"""spec = [
+    ('items', ListType(int32)),
+    ('size', int32)
+]
+
+@jitclass(spec)
+class Queue:
+    def __init__(self):
+        self.items = List.empty_list(int32)
+        self.size = 0
+
+    def is_empty(self):
+        return self.size == 0
+
+    def enqueue(self, item):
+        self.items.append(item)
+        self.size += 1
+
+    def dequeue(self):
+        if self.is_empty():
+            raise IndexError("Dequeue from an empty queue")
+        item = self.items[0]
+        del self.items[0]
+        self.size -= 1
+        return item
+
+    def get_size(self):
+        return self.size
+
+    def peek(self):
+        if self.is_empty():
+            raise IndexError("Peek from an empty queue")
+        return self.items[0]
+"""
 
 @jit(nopython=True)
 def quaternion_from_euler(roll, pitch, yaw):
@@ -321,7 +362,7 @@ def quaternion_to_rotation_matrix(quaternion):
 
 
 @jit(nopython=True)
-def dynamics(state, control, old_control):
+def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, next_gate_or, next_next_gate, next_next_gate_or, vec):
 
     """
     Simulates the dynamics of a quadrotor drone.
@@ -334,11 +375,11 @@ def dynamics(state, control, old_control):
     Returns:
         tuple: Updated state of the drone, total reward based on the current state and control, and a boolean indicating if the episode is done.
     """
-
+    
     # Constants
     G = np.array([0, 0, -9.81])  # Gravity constant (m/s^2)
     THRUST_TO_WEIGHT = 2.25  # Thrust to weight ratio (N/kg)
-    TIMESTEP = 0.005  # Time step for the integration and derivation (s)
+    TIMESTEP = 0.05  # Time step for the integration and derivation (s)
     M = 0.028  # Mass of the drone (kg)
     KF = 3.16e-10  # Thrust coefficient (N/(rpm)^2)
     KM = 7.94e-12  # Moment coefficient (Nm/(rpm)^2)
@@ -354,7 +395,7 @@ def dynamics(state, control, old_control):
     J_INV = np.linalg.inv(J)
     ROTOR_INERTIA = 0.0001  # Rotor inertia
     GOAL_STATE = np.asarray([0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-    TRAIN = "position"  # Training mode
+    TRAIN = "racing"  # Training mode
 
     DRAG_COEFF = np.array([[-9.1785e-07, 0, 0],
                         [0, -9.1785e-07, 0],
@@ -379,6 +420,10 @@ def dynamics(state, control, old_control):
     angular_velocity = state[9:12]  # Angular rates [roll_rate, pitch_rate, yaw_rate]
     motor_speeds = control[:]
 
+    #prev_gate, next_gate, next_next_gate = gates[0], gates[1], gates[2]
+    next = False
+
+
     # Convert control signals to input values
     inputs = np.empty(4)
     for i in range(4):
@@ -397,8 +442,8 @@ def dynamics(state, control, old_control):
     rot_vel = np.array([input_to_rotvel(inputs[0]), input_to_rotvel(inputs[1]), input_to_rotvel(inputs[2]), input_to_rotvel(inputs[3])])
 
     # Calculate torque components in x, y, z directions
-    torque_x = (-torques[0] - torques[1] + torques[2] + torques[3]) * (L/np.sqrt(2))
-    torque_y = (-torques[0] + torques[1] + torques[2] - torques[3]) * (L/np.sqrt(2))
+    torque_x = (-torques[0] - torques[1] + torques[2] + torques[3]) #* (L/np.sqrt(2))
+    torque_y = (-torques[0] + torques[1] + torques[2] - torques[3]) #* (L/np.sqrt(2))
     torque_z = (-torques[0] + torques[1] - torques[2] + torques[3])
     torque = np.array([torque_x, torque_y, torque_z])
 
@@ -462,16 +507,73 @@ def dynamics(state, control, old_control):
         x, y, z = position[0], position[1], position[2]
         x_b, y_b, z_b = position_before[0], position_before[1], position_before[2]
 
+        
         gate_reward = 0
+        next = False
+        g2 = next_gate
+        g1 = prev_gate
+        good = False
 
-        if (x_b < 2.0 and y_b > -0.2 and y_b < 0.2 and z_b < 1.5 and z_b > 0.5 and x > 2.0 and y > -0.5 and y < 0.5 and z > 0.5 and z < 1.5) or (x_b > 2.8 and x_b < 3.2 and y_b < 1.0 and z_b > 0.5 and z_b < 1.5 and x > 2.5 and x < 3.5 and y > 1.0 and z > 0.5 and z < 1.5) or (x_b > 2.0 and y_b > 1.8 and y_b < 2.2 and z_b < 1.5 and z_b > 0.5 and x < 2.0 and y > 1.5 and y < 2.5 and z > 0.5 and z < 1.5) or (x_b > -1.0 and y_b > 2.8 and y_b < 3.2 and z_b < 1.5 and z_b > 0.5 and x < -1.0 and y > 2.5 and y < 3.5 and z > 0.5 and z < 1.5) or (x_b > -3.2 and x_b < -2.8 and y_b > 1.0 and z_b > 0.5 and z_b < 1.5 and x > -3.5 and x < -2.5 and y < 1.0 and z > 0.5 and z < 1.5) or (x_b < -1.0 and y_b > -0.2 and y_b < 0.2 and z_b < 1.5 and z_b > 0.5 and x > -1.0 and y > -0.5 and y < 0.5 and z > 0.5 and z < 1.5):
-            gate_reward = 20 # with 100 2024-07-14-15-55-26_Iteration_1162.zip working great 
+        # check if through of next_gate
 
-        gate_obs = getGate(position)
+        if next_gate_or == 1.0:
+            if x > next_gate[0] and x_b < next_gate[0]:
+                next = True
+                if (next_gate[1] - 0.3 < y < next_gate[1] + 0.3) and (next_gate[2] - 0.3 < z < next_gate[2] + 0.3):
+                    gate_reward = 60  #/ np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+                    good = True
+                    #print("Now")
+                else:
+                    gate_reward = - 10*np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]])) 
 
-        g2 = gate_obs[0:3] # next gate
-        g1 = gate_obs[3:6]
-        alpha, beta, gamma = gate_obs[6], gate_obs[7], gate_obs[8]
+        elif next_gate_or == -1.0:
+            if x < next_gate[0] and x_b > next_gate[0]:
+                next = True
+                if (next_gate[1] - 0.3 < y < next_gate[1] + 0.3) and (next_gate[2] - 0.3 < z < next_gate[2] + 0.3):
+                    gate_reward = 60 #/ np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+                    good = True
+                    #print("Now")
+                else:
+                    gate_reward = - 10* np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+
+        elif next_gate_or == 2.0:
+            if y > next_gate[1] and y_b < next_gate[1]:
+                next = True
+                if (next_gate[0] - 0.3 < x < next_gate[0] + 0.3) and (next_gate[2] - 0.3 < z < next_gate[2] + 0.3):
+                    gate_reward = 60 #/ np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+                    good = True
+                    #print("Now")
+                else:
+                    gate_reward = - 10* np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+
+        elif next_gate_or == -2.0:
+            if y < next_gate[1] and y_b > next_gate[1]:
+                next = True
+                if (next_gate[0] - 0.3 < x < next_gate[0] + 0.3) and (next_gate[2] - 0.3 < z < next_gate[2] + 0.3):
+                    gate_reward = 60 #20 / np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+                    good = True
+                    #print("Now")
+                else:
+                    gate_reward = - 10* np.linalg.norm(np.array([next_gate[0]-position[0], next_gate[1]-position[1], next_gate[2]-position[2]]))
+        else:
+            print('Error')
+
+        if next == True: 
+            g2 = next_next_gate
+            g1 = next_gate
+
+        else:
+            g2 = next_gate
+            g1 = prev_gate
+
+        #if (x_b < 2.0 and y_b > -0.2 and y_b < 0.2 and z_b < 1.5 and z_b > 0.5 and x > 2.0 and y > -0.5 and y < 0.5 and z > 0.5 and z < 1.5) or (x_b > 2.8 and x_b < 3.2 and y_b < 1.0 and z_b > 0.5 and z_b < 1.5 and x > 2.5 and x < 3.5 and y > 1.0 and z > 0.5 and z < 1.5) or (x_b > 2.0 and y_b > 1.8 and y_b < 2.2 and z_b < 1.5 and z_b > 0.5 and x < 2.0 and y > 1.5 and y < 2.5 and z > 0.5 and z < 1.5) or (x_b > -1.0 and y_b > 2.8 and y_b < 3.2 and z_b < 1.5 and z_b > 0.5 and x < -1.0 and y > 2.5 and y < 3.5 and z > 0.5 and z < 1.5) or (x_b > -3.2 and x_b < -2.8 and y_b > 1.0 and z_b > 0.5 and z_b < 1.5 and x > -3.5 and x < -2.5 and y < 1.0 and z > 0.5 and z < 1.5) or (x_b < -1.0 and y_b > -0.2 and y_b < 0.2 and z_b < 1.5 and z_b > 0.5 and x > -1.0 and y > -0.5 and y < 0.5 and z > 0.5 and z < 1.5):
+        #    gate_reward = 20 # with 100 2024-07-14-15-55-26_Iteration_1162.zip working great 
+
+        #gate_obs = getGate(position)
+
+        #g2 = gate_obs[0:3] # next gate
+        #g1 = gate_obs[3:6]
+        #alpha, beta, gamma = gate_obs[6], gate_obs[7], gate_obs[8]
         
         """
         -----------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -492,11 +594,25 @@ def dynamics(state, control, old_control):
 
         norm_vec = np.linalg.norm(g2-g1) # Distance for Norm
 
+        #print(position.tolist())
+
         reward_ = ((position[0] - g1[0])*(g2[0]-g1[0])+(position[1]-g1[1])*(g2[1]-g1[1])+(position[2]-g1[2])*(g2[2]-g1[2]))/norm_vec 
         rewardprev_ = ((position_before[0] - g1[0])*(g2[0]-g1[0])+(position_before[1]-g1[1])*(g2[1]-g1[1])+(position_before[2]-g1[2])*(g2[2]-g1[2]))/norm_vec # Dotproduct
 
         pos_reward = reward_ - rewardprev_
 
+        total_reward = 10*pos_reward + 0.1 + gate_reward*2
+
+        rel_pos_next = np.array([next_gate[0] - position[0], next_gate[1] - position[1], next_gate[2] - position[2]])
+        #rel_pos_next_next = np.array([next_next_gate[0]-position[0], next_next_gate[1] - position[1], next_next_gate[2] - position[2]])
+
+        r = np.linalg.norm(rel_pos_next)
+        theta = np.arctan2(rel_pos_next[1], rel_pos_next[0])
+        phi = np.arccos(rel_pos_next[2]/r)
+
+        alpha = np.arccos((np.dot(rel_pos_next, vec)/(np.linalg.norm(rel_pos_next)*np.linalg.norm(vec))))
+
+        
         
 
             
@@ -508,7 +624,7 @@ def dynamics(state, control, old_control):
 
         """
         
-        gate_normal_direction = np.array([np.cos(alpha) + np.sin(alpha), - np.sin(alpha) + np.cos(alpha), 0]) 
+        """gate_normal_direction = np.array([np.cos(alpha) + np.sin(alpha), - np.sin(alpha) + np.cos(alpha), 0]) 
 
         D_ = - (gate_normal_direction[0]*g2[0] + gate_normal_direction[1]*g2[1] + gate_normal_direction[2]*g2[2])
         plane_of_gate = np.array([gate_normal_direction[0], gate_normal_direction[1], gate_normal_direction[2], D_]) 
@@ -540,7 +656,7 @@ def dynamics(state, control, old_control):
         total_reward += 0.2 
 
         total_reward /= 5 # 10
-
+        """
         
         #print(gate_reward)
     
@@ -550,11 +666,22 @@ def dynamics(state, control, old_control):
         angular_velocity[2] > 100 or angular_velocity[0] < -100 or angular_velocity[1] < -100 or angular_velocity[2] < -100):
         done = True"""
 
-    if (position[0] > 3.5 or position[0] < -3.5 or position[1] < -0.5 or position[1] > 3.5 or 
-        position[2] > 5 or position[2] < 0.1 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
+    if (position[0] > 7 or position[0] < -7 or position[1] < -7 or position[1] > 7 or 
+        position[2] > 5 or position[2] < -1 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
         angular_velocity[2] > 100 or angular_velocity[0] < -100 or angular_velocity[1] < -100 or angular_velocity[2] < -100):
         done = True
         #print(obs)
+
+
+    
+    obs = np.array([position[0], position[1], position[2],
+                    velocity[0], velocity[1], velocity[2],
+                    orientation_euler[0], orientation_euler[1], orientation_euler[2],
+                    angular_velocity[0], angular_velocity[1], angular_velocity[2],
+                    r, theta, phi,
+                    alpha
+                    #rel_pos_next_next[0], rel_pos_next_next[1], rel_pos_next_next[2]
+                    ])
     
 
 
@@ -567,5 +694,5 @@ def dynamics(state, control, old_control):
     #print('Tau Control:', tau_control)
     #print(position, quaternion, velocity, rpy_rates)
 
-    return obs, total_reward, done
+    return obs, total_reward, done, next, good
 

@@ -2,6 +2,12 @@ import numpy as np
 import random
 from sim.dynamics import drone_dynamics
 from sim.dynamics import drone_dynamics2
+from numba import njit,int32, float64
+from numba.typed import List
+from numba.types import ListType
+from numba.experimental import jitclass
+
+
 
 """
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -12,6 +18,79 @@ from sim.dynamics import drone_dynamics2
                                         PROCESSOR CLASS of the Vec_Envs.
 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 """
+
+spec = [
+    ('gates', float64[:,:])  # A list of gates, each represented by a fixed-size array
+]
+
+@jitclass(spec)
+class GateFinder:
+    def __init__(self):
+        self.gates = np.empty((0, 4), dtype=np.float64)  # Initial empty array with dtype float64
+
+    def add_gate(self, position, properties):
+        new_gate = np.array(position + properties, dtype=np.float64)
+        if self.gates.size == 0:
+            self.gates = new_gate.reshape(1, -1)
+        else:
+            self.gates = np.vstack((self.gates, new_gate.reshape(1, -1)))
+
+    def closest_gate_pair(self, object_position):
+        min_distance = np.inf
+        closest_pair_index = -1
+        closest_point = np.zeros(3, dtype=np.float64)
+
+        def distance_point_to_segment(p, a, b):
+            """Calculate the distance from point p to the segment defined by points a and b."""
+            ab = b - a
+            ap = p - a
+            ab_dot_ab = np.dot(ab, ab)
+            if ab_dot_ab == 0:
+                return np.linalg.norm(p - a), a
+            
+            t = np.dot(ap, ab) / ab_dot_ab
+            t = self.clip(t, 0, 1)  # Manual clipping
+            nearest = a + t * ab
+            return np.linalg.norm(nearest - p), nearest
+
+        object_pos = np.array(object_position, dtype=np.float64)
+
+        for i in range(len(self.gates) - 1):
+            gate1 = self.gates[i, :3]
+            gate2 = self.gates[i + 1, :3]
+
+            distance, nearest_point = distance_point_to_segment(object_pos, gate1, gate2)
+            if distance < min_distance:
+                min_distance = distance
+                closest_pair_index = i
+                closest_point = nearest_point
+
+        return closest_pair_index, closest_point, min_distance
+
+    def move_closest_pair_to_front(self, object_position):
+        closest_pair_index, _, _ = self.closest_gate_pair(object_position)
+        if closest_pair_index != -1:
+            self.gates = self.roll(self.gates, -closest_pair_index)
+
+    def next(self):
+        self.gates = self.roll(self.gates, -1)
+
+    def clip(self, value, min_value, max_value):
+        """Manual clipping function."""
+        if value < min_value:
+            return min_value
+        elif value > max_value:
+            return max_value
+        else:
+            return value
+
+    def roll(self, array, shift):
+        """Manually roll the array."""
+        n = array.shape[0]
+        shift = shift % n
+        return np.concatenate((array[-shift:], array[:-shift]), axis=0)
+
+
 
 
 class VectorEnvironment:
@@ -135,7 +214,7 @@ class VectorEnvironment:
 
         if done:
             observation = self.envs[env_id].reset()
-            reward -= 10
+            reward -= 100
 
         return observation, reward, done
 
@@ -165,30 +244,87 @@ class BaseEnvironment:
         Initializes the BaseEnvironment class. This is where the Dynamics are directly implemented.
         """
 
-        self.initial_state = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
-        self.state = np.empty(12)
+        #self.initial_state = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
+        self.state = np.empty(16)
 
         for i in range(12):
             if i == 0:
-                self.state[i] = random.uniform(-3, 3) 
+                self.state[i] = random.uniform(-3.5, 3.5) 
             
             elif i == 1:
-                self.state[i] = random.uniform(0, 3) 
+                self.state[i] = random.uniform(-3.5, 3.5) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.2, 1.4) 
+                self.state[i] = random.uniform(1.0, 2.1) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
         #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         
-        self.obs_dim = 12
+        self.obs_dim = 13
         self.act_dim = 4
         self.old_control = np.array([0.0, 0.0, 0.0, 0.0])
-        self.initial_quat = drone_dynamics.euler_to_quaternion(self.state[6], self.state[7], self.state[8])
-        self.quaternion = self.initial_quat.copy()
+        #self.initial_quat = drone_dynamics.euler_to_quaternion(self.state[6], self.state[7], self.state[8])
+        #self.quaternion = self.initial_quat.copy()
+
+
+        self.gates = GateFinder()
         
+        #for i in range(8):
+        #    x, y, z, k = random.uniform(-2.5, 2.5), random.uniform(-2.5, 2.5), 1.0, random.choice([-2.0, -1.0, 1.0, 2.0])
+        #    self.gates.add_gate([x, y, z], [k])
+
+        self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        self.gates.add_gate([3.0, 3.0, 1.0], [-2.0])
+        self.gates.add_gate([2.0, -2.0, 2.0], [-1.0])
+        self.gates.add_gate([-2.0, -3.0, 2.0], [-1.0])
+        self.gates.add_gate([-2.0, -3.0, 1.0], [1.0])
+        self.gates.add_gate([0.0, 0.0, 1.0], [-1.0])
+        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])
+        #self.gates.add_gate([-3.0, -3.0, 1.0], [2.0])
+
+        self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
+
+        #for i in range(12, 15):
+        #    self.state[i] = self.gates.gates[1][i-12] - self.state[i-12]
+
+        #for i in range(15, 18):
+        #    self.state[i] = self.gates.gates[2][i-15] - self.state[i-15]
+        
+        self.dic = {-2.0: np.array([0.0, -1.0, 0.0]), -1.0: np.array([-1.0, 0.0, 0.0]), 1.0: np.array([1.0, 0.0, 0.0]), 2.0: np.array([0.0, 1.0, 0.0])}
+        """
+        self.vec = np.empty(3)
+
+        for i in range(3):
+            x, y, z, k = random.uniform(-3.5, 3.5), random.uniform(-3.5, 3.5), random.choice([1.0, 2.0]), random.choice([-2.0, -1.0, 1.0, 2.0])
+            self.gates.add_gate([x, y, z], [k])
+
+        for i in range(12, 15):
+            self.state[i] = - self.gates.gates[1][i-12] + self.state[i-12]
+            self.vec[i-12] = self.state[i]"""
+        
+
+
+        vec = np.empty(3)
+
+        for i in range(12, 15):
+            vec[i-12] = self.gates.gates[1][i-12] - self.state[i-12]
+            
+        r = np.linalg.norm(vec)
+        theta = np.arctan2(vec[1], vec[0])
+        phi = np.arccos(vec[2]/r)
+
+        self.state[12], self.state[13], self.state[14] = r, theta, phi
+
+
+        self.state[15] = np.arccos((np.dot(vec, self.dic[self.gates.gates[1][3]])/(np.linalg.norm(vec)*np.linalg.norm(self.dic[self.gates.gates[1][3]])))) # alpha
+
+        
+        self.initial_state = self.state
+        #print(self.initial_state)
+
+        self.return_state = np.empty(13)
 
 
     def get_observation_dimension(self):
@@ -221,17 +357,19 @@ class BaseEnvironment:
         Returns:
             np.ndarray: Sate of the environment.
         """
-        self.state = np.empty(12)
+
+        #self.gates = GateFinder()
+
+        self.state = np.empty(16)
         for i in range(12):
             if i == 0:
-
-                self.state[i] = random.uniform(-3, 3) 
-
+                self.state[i] = random.uniform(-3.5, 3.5) 
+            
             elif i == 1:
-                self.state[i] = random.uniform(0, 3) 
+                self.state[i] = random.uniform(-3.5, 3.5) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.2, 1.4) 
+                self.state[i] = random.uniform(1.0, 2.1) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
@@ -239,9 +377,45 @@ class BaseEnvironment:
         #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
 
-        self.quaternion = self.initial_quat.copy()
+        #self.quaternion = self.initial_quat.copy()
 
-        return self.state
+
+        #for i in range(8):
+        #    x, y, z, k = random.uniform(-2.5, 2.5), random.uniform(-2.5, 2.5), 1.0, random.choice([-2.0, -1.0, 1.0, 2.0])
+        #    self.gates.add_gate([x, y, z], [k])
+        
+        self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
+        
+        #for i in range(12, 15):
+        #    self.state[i] = self.gates.gates[1][i-12] - self.state[i-12]
+
+        #for i in range(15, 18):
+        #    self.state[i] = self.gates.gates[2][i-15] - self.state[i-15]
+        
+
+        """for i in range(3):
+            x, y, z, k = random.uniform(-3.5, 3.5), random.uniform(-3.5, 3.5), random.choice([1.0, 2.0]), random.choice([-2.0, -1.0, 1.0, 2.0])
+            self.gates.add_gate([x, y, z], [k])"""
+        
+        vec = np.empty(3)
+
+        for i in range(12, 15):
+            vec[i-12] = self.gates.gates[1][i-12] - self.state[i-12]
+            
+        r = np.linalg.norm(vec)
+        theta = np.arctan2(vec[1], vec[0])
+        phi = np.arccos(vec[2]/r)
+
+        self.state[12], self.state[13], self.state[14] = r, theta, phi
+
+        self.state[15] = np.degrees(np.arccos((np.dot(vec, self.dic[self.gates.gates[1][3]])/(np.linalg.norm(vec)*np.linalg.norm(self.dic[self.gates.gates[1][3]]))))) # alpha
+
+
+        self.return_state = self.state[3:]
+
+        
+
+        return self.return_state
 
     def step(self, act):
 
@@ -258,11 +432,23 @@ class BaseEnvironment:
 
         #print(self.state)
 
-        self.state, reward, done = drone_dynamics2.dynamics(self.state, act, self.old_control)
+        self.state, reward, done, next, good = drone_dynamics2.dynamics(self.state, act, self.old_control, self.gates.gates[0][0:3], self.gates.gates[0][3], self.gates.gates[1][0:3], self.gates.gates[1][3], self.gates.gates[2][0:3], self.gates.gates[2][3], self.dic[self.gates.gates[1][3]])
 
         self.old_control = act.copy()
 
-        return self.state, reward, done
+        self.return_state = self.state[3:]
+
+        if next:
+            self.gates.next()
+
+        #if next and not done:
+        #    self.state = self.initial_state
+        #    print(self.state)
+        #elif next and not good and not done:
+        #    done = True
+        print(self.state[:3].tolist(), ",")
+
+        return self.return_state, reward, done
 
     def is_terminal_state(self):
 

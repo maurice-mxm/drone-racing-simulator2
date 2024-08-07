@@ -17,7 +17,7 @@ from sim.vec_env.vec_processor import VectorEnvironment
 
 def main():
 
-    args = {"train" : False, "model" : "models/2024-07-15-10-51-42_Iteration_11261.zip"} #extremely good model (dynamics 2, with L/sqrt(2)): models/2024-07-15-10-51-42_Iteration_11261.zip # working model: 2024-07-13-19-39-26_Iteration_2660.zip    2024-07-13-21-38-05_Iteration_1998.zip
+    args = {"train" : False, "model" : "models/2024-08-06-21-14-03_Iteration_1378.zip"} #extremely good model (dynamics 2, with L/sqrt(2)): models/2024-07-15-10-51-42_Iteration_11261.zip # working model: 2024-07-13-19-39-26_Iteration_2660.zip    2024-07-13-21-38-05_Iteration_1998.zip
 
     if args["train"]:
         args["n_envs"] = 100
