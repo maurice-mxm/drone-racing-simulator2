@@ -19,7 +19,7 @@ class MainVecEnv(VecEnv):
     Custom vectorized environment wrapper for Stable Baselines.
     """
 
-    def __init__(self, impl):
+    def __init__(self, impl, args):
 
         """
         Initializes the environment.
@@ -43,9 +43,11 @@ class MainVecEnv(VecEnv):
             dtype=np.float32)
         self._observation = np.zeros([self.num_envs, self.num_obs],
                                      dtype=np.float32)
+        self._position = np.zeros([self.num_envs, 3], dtype=np.float32)
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
         self._done = np.zeros((self.num_envs), dtype=np.bool)
         self.rewards = [[] for _ in range(self.num_envs)]
+        self.train = args["train"]
 
         self.max_episode_steps = 1000
 
@@ -72,7 +74,7 @@ class MainVecEnv(VecEnv):
             tuple: Observation, reward, done flags, and additional information.
         """
 
-        self._observation, self._reward, self._done = self.wrapper.step(action)
+        self._position, self._observation, self._reward, self._done = self.wrapper.step(action)
 
         info = [{} for i in range(self.num_envs)]
 
@@ -85,8 +87,15 @@ class MainVecEnv(VecEnv):
                 info[i]['episode'] = epinfo
                 self.rewards[i].clear()
 
-        return self._observation.copy(), self._reward.copy(), \
-            self._done.copy(), info.copy()
+        if self.train:
+
+            return self._observation.copy(), self._reward.copy(), \
+                self._done.copy(), info.copy()
+        
+        else:
+            return self._position.copy(), self._observation.copy(), self._reward.copy(), \
+                self._done.copy(), info.copy()
+
 
 
     def reset(self):
@@ -99,8 +108,16 @@ class MainVecEnv(VecEnv):
         """
 
         self._reward = np.zeros(self.num_envs, dtype=np.float32)
-        self._observation = self.wrapper.reset()
-        return self._observation.copy()
+        self._position, self._observation = self.wrapper.reset()
+
+
+        if self.train:
+
+            return self._observation.copy()
+        
+        else:
+
+            return self._position.copy(), self._observation.copy()
 
     def reset_and_update_info(self):
 

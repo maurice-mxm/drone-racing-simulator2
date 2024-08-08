@@ -170,10 +170,12 @@ class VectorEnvironment:
         """
 
         observations_ = np.zeros((self.number_of_envs, self.obs_dim), dtype=np.float32)
-        for i in range(self.number_of_envs):
-            observations_[i] = self.envs[i].reset()
+        position_ = np.zeros((self.number_of_envs, 3), dtype=np.float32)
 
-        return observations_
+        for i in range(self.number_of_envs):
+            position_, observations_[i] = self.envs[i].reset()
+
+        return position_, observations_
 
     def step(self, act):
 
@@ -186,15 +188,15 @@ class VectorEnvironment:
         Returns:
             tuple: Observations, rewards, done flags, and extra info.
         """
-
+        position_ = np.zeros((self.number_of_envs, 3), dtype=np.float32)
         observation_ = np.zeros((self.number_of_envs, self.obs_dim), dtype=np.float32)
         reward_ = np.zeros(self.number_of_envs, dtype=np.float32)
         done_ = np.zeros(self.number_of_envs, dtype=bool)
         
         for i in range(self.number_of_envs):
-            observation_[i], reward_[i], done_[i]= self.step_env(i, act[i])
+            position_[i], observation_[i], reward_[i], done_[i]= self.step_env(i, act[i])
 
-        return observation_, reward_, done_
+        return position_, observation_, reward_, done_
     
 
     def step_env(self, env_id, action):
@@ -210,13 +212,13 @@ class VectorEnvironment:
             tuple: Observation, reward, done flag, and extra info.
         """
 
-        observation, reward, done = self.envs[env_id].step(action)
+        position, observation, reward, done = self.envs[env_id].step(action)
 
         if done:
-            observation = self.envs[env_id].reset()
+            position, observation = self.envs[env_id].reset()
             reward -= 100
 
-        return observation, reward, done
+        return position, observation, reward, done
 
 
     def get_observation(self, observations):
@@ -249,13 +251,13 @@ class BaseEnvironment:
 
         for i in range(12):
             if i == 0:
-                self.state[i] = random.uniform(-6.9, 6.9) 
+                self.state[i] = random.uniform(-6.0, 6.0) 
             
             elif i == 1:
-                self.state[i] = random.uniform(-6.9, 6.9) 
+                self.state[i] = random.uniform(-6.0, 6.0) 
 
             elif i == 2:
-                self.state[i] = random.uniform(-0.9, 4.9) 
+                self.state[i] = random.uniform(-0.9, 3.9) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
@@ -271,26 +273,26 @@ class BaseEnvironment:
 
         self.gates = GateFinder()
         
-        #for i in range(40):
-        #    x, y, z, k = random.uniform(-6.0, 6.0), random.uniform(-6.0, 6.0), random.uniform(0.0, 4.0), random.choice([-2.0, -1.0, 1.0, 2.0])
+        #for i in range(200):
+        #    x, y, z, k = random.uniform(-4.0, 4.0), random.uniform(-4.0, 4.0), random.uniform(0.5, 2.5), random.choice([-2.0, -1.0, 1.0, 2.0])
         #    self.gates.add_gate([x, y, z], [k])
 
-        self.gates.add_gate([-3.0, 2.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        """self.gates.add_gate([-3.0, 2.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
         self.gates.add_gate([-1.5, 1.0, 2.0], [1.0])
         self.gates.add_gate([1.5, -1.0, 2.0], [1.0])
         self.gates.add_gate([3.0, -2.0, 1.0], [1.0])
         self.gates.add_gate([3.0, 2.0, 1.0], [-1.0])
         self.gates.add_gate([1.5, 1.0, 2.0], [-1.0])
         self.gates.add_gate([-1.5, -1.0, 2.0], [-1.0])
-        self.gates.add_gate([-3.0, -2.0, 1.0], [-1.0])
+        self.gates.add_gate([-3.0, -2.0, 1.0], [-1.0])"""
 
-        """self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
         self.gates.add_gate([3.0, 3.0, 1.0], [-2.0])
         self.gates.add_gate([2.0, -2.0, 2.0], [-1.0])
         self.gates.add_gate([-2.0, -3.0, 2.0], [-1.0])
         self.gates.add_gate([-2.0, -3.0, 1.0], [1.0])
         self.gates.add_gate([0.0, 0.0, 1.0], [-1.0])
-        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])"""
+        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])
         #self.gates.add_gate([-3.0, -3.0, 1.0], [2.0])
 
         self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
@@ -328,6 +330,20 @@ class BaseEnvironment:
 
 
         self.state[15] = np.arccos((np.dot(vec, self.dic[self.gates.gates[1][3]])/(np.linalg.norm(vec)*np.linalg.norm(self.dic[self.gates.gates[1][3]])))) # alpha
+
+
+        vec2 = np.empty(3)
+
+        for i in range(12, 15):
+            vec2[i-12] = self.gates.gates[2][i-12] - self.state[i-12]
+            
+        r = np.linalg.norm(vec2)
+        theta = np.arctan2(vec2[1], vec2[0])
+        phi = np.arccos(vec2[2]/r)
+
+        #self.state[16], self.state[17], self.state[18] = r, theta, phi
+
+        #self.state[19] = np.degrees(np.arccos((np.dot(vec2, self.dic[self.gates.gates[2][3]])/(np.linalg.norm(vec2)*np.linalg.norm(self.dic[self.gates.gates[2][3]])))))
 
         
         self.initial_state = self.state
@@ -374,13 +390,13 @@ class BaseEnvironment:
         self.state = np.empty(16)
         for i in range(12):
             if i == 0:
-                self.state[i] = random.uniform(-3.5, 3.5) 
+                self.state[i] = random.uniform(-6.0, 6.0) 
             
             elif i == 1:
-                self.state[i] = random.uniform(-3.5, 3.5) 
+                self.state[i] = random.uniform(-6.0, 6.0) 
 
             elif i == 2:
-                self.state[i] = random.uniform(1.0, 2.1) 
+                self.state[i] = random.uniform(0.1, 2.9) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
@@ -423,12 +439,27 @@ class BaseEnvironment:
 
         self.state[15] = np.degrees(np.arccos((np.dot(vec, self.dic[self.gates.gates[1][3]])/(np.linalg.norm(vec)*np.linalg.norm(self.dic[self.gates.gates[1][3]]))))) # alpha
 
+        
+
+        vec2 = np.empty(3)
+
+        for i in range(12, 15):
+            vec2[i-12] = self.gates.gates[2][i-12] - self.state[i-12]
+            
+        r = np.linalg.norm(vec2)
+        theta = np.arctan2(vec2[1], vec2[0])
+        phi = np.arccos(vec2[2]/r)
+
+        #self.state[16], self.state[17], self.state[18] = r, theta, phi
+
+        #self.state[19] = np.degrees(np.arccos((np.dot(vec2, self.dic[self.gates.gates[2][3]])/(np.linalg.norm(vec2)*np.linalg.norm(self.dic[self.gates.gates[2][3]])))))
+
 
         self.return_state = self.state[3:]
 
         
 
-        return self.return_state
+        return self.state[:3], self.return_state
 
     def step(self, act):
 
@@ -445,7 +476,7 @@ class BaseEnvironment:
 
         #print(self.state)
 
-        self.state, reward, done, next, good = drone_dynamics2.dynamics(self.state, act, self.old_control, self.gates.gates[0][0:3], self.gates.gates[0][3], self.gates.gates[1][0:3], self.gates.gates[1][3], self.gates.gates[2][0:3], self.gates.gates[2][3], self.dic[self.gates.gates[1][3]])
+        self.state, reward, done, next, good = drone_dynamics2.dynamics(self.state, act, self.old_control, self.gates.gates[0][0:3], self.gates.gates[0][3], self.gates.gates[1][0:3], self.gates.gates[1][3], self.gates.gates[2][0:3], self.gates.gates[2][3], self.dic[self.gates.gates[1][3]], self.dic[self.gates.gates[2][3]])
 
         self.old_control = act.copy()
 
@@ -459,9 +490,9 @@ class BaseEnvironment:
         #    print(self.state)
         #elif next and not good and not done:
         #    done = True
-        print(self.state[:3].tolist(), ",")
+        #print(self.state[:3].tolist(), ",")
 
-        return self.return_state, reward, done
+        return self.state[:3], self.return_state, reward, done
 
     def is_terminal_state(self):
 

@@ -362,7 +362,7 @@ def quaternion_to_rotation_matrix(quaternion):
 
 
 @jit(nopython=True)
-def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, next_gate_or, next_next_gate, next_next_gate_or, vec):
+def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, next_gate_or, next_next_gate, next_next_gate_or, vec, vec2):
 
     """
     Simulates the dynamics of a quadrotor drone.
@@ -604,13 +604,20 @@ def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, ne
         total_reward = 10*pos_reward + 0.1 + gate_reward*2
 
         rel_pos_next = np.array([next_gate[0] - position[0], next_gate[1] - position[1], next_gate[2] - position[2]])
-        #rel_pos_next_next = np.array([next_next_gate[0]-position[0], next_next_gate[1] - position[1], next_next_gate[2] - position[2]])
+        rel_pos_next_next = np.array([next_next_gate[0]-position[0], next_next_gate[1] - position[1], next_next_gate[2] - position[2]])
 
         r = np.linalg.norm(rel_pos_next)
         theta = np.arctan2(rel_pos_next[1], rel_pos_next[0])
         phi = np.arccos(rel_pos_next[2]/r)
 
         alpha = np.arccos((np.dot(rel_pos_next, vec)/(np.linalg.norm(rel_pos_next)*np.linalg.norm(vec))))
+
+
+        r2 = np.linalg.norm(rel_pos_next_next)
+        theta2 = np.arctan2(rel_pos_next_next[1], rel_pos_next_next[0])
+        phi2 = np.arccos(rel_pos_next_next[2]/r2)
+
+        alpha2 = np.arccos((np.dot(rel_pos_next_next, vec2)/(np.linalg.norm(rel_pos_next_next)*np.linalg.norm(vec2))))
 
         
         
@@ -666,8 +673,8 @@ def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, ne
         angular_velocity[2] > 100 or angular_velocity[0] < -100 or angular_velocity[1] < -100 or angular_velocity[2] < -100):
         done = True"""
 
-    if (position[0] > 7 or position[0] < -7 or position[1] < -7 or position[1] > 7 or 
-        position[2] > 5 or position[2] < -1 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
+    if (position[0] > 6.1 or position[0] < -6.1 or position[1] < -6.1 or position[1] > 6.1 or 
+        position[2] > 4 or position[2] < -1 or angular_velocity[0] > 100 or angular_velocity[1] > 100 or 
         angular_velocity[2] > 100 or angular_velocity[0] < -100 or angular_velocity[1] < -100 or angular_velocity[2] < -100):
         done = True
         #print(obs)
@@ -679,8 +686,8 @@ def dynamics(state, control, old_control, prev_gate, prev_gate_or, next_gate, ne
                     orientation_euler[0], orientation_euler[1], orientation_euler[2],
                     angular_velocity[0], angular_velocity[1], angular_velocity[2],
                     r, theta, phi,
-                    alpha
-                    #rel_pos_next_next[0], rel_pos_next_next[1], rel_pos_next_next[2]
+                    alpha,
+                    #r2, theta2, phi2, alpha2
                     ])
     
 
