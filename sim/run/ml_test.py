@@ -7,6 +7,7 @@ from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.collections import LineCollection
 from mpl_toolkits.mplot3d.art3d import Line3DCollection
+import csv
 
 import uav_trajectory
 
@@ -57,9 +58,9 @@ def test(env, model):
     ax_action2 = fig.add_subplot(gs[4, 6:9])
     ax_action3 = fig.add_subplot(gs[4, 9:12])
 
-    max_ep_length = 2000 #env.max_episode_steps
+    max_ep_length = 2000 # 10000 #env.max_episode_steps
     num_rollouts = 1
-    TIMESTEP = 0.1
+    TIMESTEP = 0.02
 
     for n_roll in range(num_rollouts):
         pos, vel, accel, yerk, euler, ang_vel = [], [], [], [], [], []
@@ -87,7 +88,9 @@ def test(env, model):
                 t += 1
 
             pos.append(obs[0, 0:3].tolist())
-            vel.append(obs[0, 3:6].tolist())
+            vel.append(obs[0, 0:3].tolist()) # 3:6
+
+            #print(vel)
 
             vel = np.asarray(vel)
             
@@ -106,8 +109,8 @@ def test(env, model):
             
             accel = accel.tolist()            
 
-            euler.append(obs[0, 6:9].tolist())
-            ang_vel.append(obs[0, 9:12].tolist())
+            euler.append(obs[0, 3:6].tolist())
+            ang_vel.append(obs[0, 6:9].tolist())
 
             actions.append(act[0, :].tolist())
 
@@ -121,22 +124,56 @@ def test(env, model):
         accels = np.empty(len(vel))
         yerks = np.empty(len(vel))
 
+        
+
         for i in range(len(vel)):
-            vels[i] = np.linalg.norm(np.array([vel[i][0], vel[i][1]]))
-            accels[i] = np.linalg.norm(np.array([accel[i][0], accel[i][1]]))
+            vels[i] = np.linalg.norm(np.array([vel[i][0], vel[i][1], vel[i][2]]))
+            accels[i] = np.linalg.norm(np.array([accel[i][0], accel[i][1], accel[i][2]]))
             yerks[i] = np.linalg.norm(np.array([yerk[i][0], yerk[i][1]]))
 
         print('MAX VEL: ', np.max(vels), '-- MIN VEL: ', np.min(vels))
         #print('MAX X-VEL: ', np.max(np.absolute(vel[:][0])), '-- MAX Y-VEL: ', np.max(np.absolute(vel[:][1])))
         print('MAX ACCEL: ',np.max(accels), '-- MIN ACCEL: ', np.min(accels))
-        print('MAX YERK: ', np.max(yerks), '-- MIN YERK: ', np.min(yerks))        
+        print('MAX YERK: ', np.max(yerks), '-- MIN YERK: ', np.min(yerks))  
+
+        euler_degrees = np.degrees(euler)
+        euler_velocity_degrees = np.degrees(ang_vel)
+        file_path = "position.csv"
+
+        x_values = np.asarray(x_values)
+        y_values = np.asarray(y_values)
+        z_values = np.asarray(z_values)  
+
+        
+
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(["X", "Y", "Z", "Roll", "Pitch", "Yaw"])
+
+            for i in range(len(x_values)):
+                row = [x_values[i]*100, y_values[i]*100, z_values[i]*100, -euler_degrees[i][0], -euler_degrees[i][1], euler_degrees[i][2]] # -, + looks pretty good to me ## +, -
+                writer.writerow(row)
+
+
+        file_path = 'test100.csv'
+        with open(file_path, mode='w', newline='') as file:
+            writer = csv.writer(file)
+
+            writer.writerow(["X", "Y", "Z", "VX", "VY", "VZ", "R", "P", "Ya", "VR", "VP", "VYa"])
+
+            for i in range(1000, len(x_values)):
+                row = [x_values[i], y_values[i], z_values[i], vel[i][0], vel[i][1], vel[i][2], euler_degrees[i][0], euler_degrees[i][1], euler_degrees[i][2], euler_velocity_degrees[i][0], euler_velocity_degrees[i][1], euler_velocity_degrees[i][2]] # -, + looks pretty good to me ## +, -
+                writer.writerow(row)
+
+            
 
         t = np.arange(0, pos.shape[0])
-        ax_x.step(t, pos[:, 0], color="C{0}".format(
+        ax_x.step(t, x_values[:], color="C{0}".format(
             n_roll), label="trail: {0}".format(n_roll))
-        ax_y.step(t, pos[:, 1], color="C{0}".format(
+        ax_y.step(t, y_values[:], color="C{0}".format(
             n_roll), label="trail: {0}".format(n_roll))
-        ax_z.step(t, pos[:, 2], color="C{0}".format(
+        ax_z.step(t, z_values[:], color="C{0}".format(
             n_roll), label="pos [x, y, z] -- trail: {0}".format(n_roll))
         
         ax_dx.step(t, vel[:, 0], color="C{0}".format(
@@ -180,13 +217,15 @@ def test(env, model):
     
     #values = np.array([])
 
-    x_values = np.asarray(x_values)
-    y_values = np.asarray(y_values)
-    z_values = np.asarray(z_values)
+    
+    ax3.plot3D(x_values[:], y_values[:], z_values[:], 'green')
 
+    
 
-    gates = np.array([[-2.0, -2.0, 1.0, -1.0], [-3.0, 3.0, 1.0, 1.0], [3.0, 3.0, 1.0, -2.0], [2.0, -2.0, 2.0, -1.0], [-2.0, -3.0, 2.0, -1.0], [-2.0, -3.0, 1.0, 1.0], [0.0, 0.0, 1.0, -1.0]])
-    ax3.plot3D(x_values[500:], y_values[500:], z_values[500:], 'green')
+    
+    #gates = np.array([[-2.0, -2.0, 1.0, -1.0], [-3.0, 3.0, 1.0, 1.0], [3.0, 3.0, 1.0, -2.0], [2.0, -2.0, 2.0, -1.0], [-2.0, -3.0, 2.0, -1.0], [-2.0, -3.0, 1.0, 1.0], [0.0, 0.0, 1.0, -1.0]])
+    gates = np.array([[8.0, -3.0, 0.5, -2.0], [-4.0, -7.0, 3.0, -1.0], [-4.0, -7.0, 1.0,1.0], [4.0, 0.0, 2.5,2.0], [-4.0, 7.0, 1.0, -1.0], [-4.0, 0.0, 0.5, 1.0], [10.0, 6.0, 2.0,1.0]])
+    #ax3.plot3D(x_values[500:], y_values[500:], z_values[500:], 'green')
     #ax3.scatter3D(gates[:,0], gates[:,1], gates[:,2], 'red')
     
 
@@ -217,7 +256,50 @@ def test(env, model):
         ax3.add_collection3d(gate_poly)
         #ax3.scatter3D(center_x, center_y, center_z, color='red')
 
+    x_limits = ax3.get_xlim3d()
+    y_limits = ax3.get_ylim3d()
+    z_limits = ax3.get_zlim3d()
 
+    x_range = x_limits[1] - x_limits[0]
+    y_range = y_limits[1] - y_limits[0]
+    z_range = z_limits[1] - z_limits[0]
+
+    max_range = np.max([x_range, y_range, z_range])
+
+    # Setting the limits for x, y, z to have the same range
+    ax3.set_xlim3d([x_limits[0], x_limits[0] + max_range])
+    ax3.set_ylim3d([y_limits[0], y_limits[0] + max_range])
+    ax3.set_zlim3d([z_limits[0], z_limits[0] + max_range])
+
+    # Set labels
+    ax3.set_xlabel('X')
+    ax3.set_ylabel('Y')
+    ax3.set_zlabel('Z')
+
+    
+    plt.show()
+
+
+    
+    """
+    vel1 = np.empty(len(pos[5000:]))
+    for i, _ in enumerate(pos[5000:]):
+        vel1[i] = np.linalg.norm(_)
+        
+    norm_vel = (vel1 - np.min(vel1)) / (np.max(vel1) - np.min(vel1))
+    #print(vel1.tolist())
+
+    norm = plt.Normalize(vmin=vel1.min(), vmax=vel1.max())
+
+
+
+    # Plot the trajectory with velocity-based coloring
+    sc = ax3.scatter3D(x_values[5000:], y_values[5000:], z_values[5000:], c=vel1, cmap='magma', s=5, norm=norm)  # 'viridis' is just one option
+
+    # Add a colorbar to show the mapping from velocity to color
+    cbar = plt.colorbar(sc, ax=ax3)
+    cbar.set_label('Velocity (m/s)')
+    
     ax3.set_title('Path of first drone.')
 
 
@@ -241,24 +323,9 @@ def test(env, model):
     ax3.set_ylabel('Y')
     ax3.set_zlabel('Z')
 
-    vel = np.empty(len(pos))
-    for _ in pos:
-        vel[i] = np.linalg.norm(_)
-
-
-    # Create points for the segments
-    """points = np.array([x_values[500:], y_values[500:], z_values[500:]]).T.reshape(-1, 1, 3)
-    segments = np.concatenate([points[:-1], points[1:]], axis=1)
-
-    # Create a Line3DCollection
-    lc = Line3DCollection(segments, cmap='viridis', norm=plt.Normalize(vel.min(), vel.max()))
-    lc.set_array(vel)
-    lc.set_linewidth(2)
-    ax3.add_collection(lc)"""
-
     plt.show()
     """
-    waypoints = np.array([[2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0],])
+    """waypoints = np.array([[2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0], [2, 0], [3, 1], [2, 2], [-1, 3], [-3, 1], [-1, 0],])
 
     # Number of waypoints
     num_waypoints = len(waypoints)

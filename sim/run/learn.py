@@ -17,8 +17,11 @@ from sim.vec_env.vec_processor import VectorEnvironment
 
 def main():
 
-    args = {"train" : False, "model" : "models/2024-08-08-14-31-15_Iteration_1654.zip"} #extremely good model (dynamics 2, with L/sqrt(2)): models/2024-07-15-10-51-42_Iteration_11261.zip # working model: 2024-07-13-19-39-26_Iteration_2660.zip    2024-07-13-21-38-05_Iteration_1998.zip
-
+    args = {"train" : True, "model" : "models/"} #extremely good model (dynamics 2, with L/sqrt(2)): models/2024-07-15-10-51-42_Iteration_11261.zip # working model: 2024-07-13-19-39-26_Iteration_2660.zip    2024-07-13-21-38-05_Iteration_1998.zip
+    # for racing: models/2024-08-08-14-31-15_Iteration_1654.zip # for position: 2024-09-19-20-08-56_Iteration_379.zip # for racing again: 2024-09-29-21-41-13.zip or 2024-09-30-22-56-30_Iteration_1587.zip
+    # working really well on 0.05 & big area time: 6.3 2024-10-02-16-11-37_Iteration_1269.zip
+    # time: 5.46: 2024-10-02-21-13-43_Iteration_4844.zip (optimization of the above)
+    # time: 5.24: 2024-10-02-23-04-49_Iteration_4581.zip (again from the above)
     if args["train"]:
         args["n_envs"] = 100
     else:
@@ -60,7 +63,7 @@ def main():
 
         logger.configure(folder=saver.data_dir)
         model.learn(
-            total_timesteps=int(1000000000), # max timesteps
+            total_timesteps=int(250000000), # max timesteps
             log_dir=saver.data_dir, logger=logger)
         model.save(saver.data_dir)
 

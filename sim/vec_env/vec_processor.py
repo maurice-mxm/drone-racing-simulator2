@@ -2,7 +2,7 @@ import numpy as np
 import random
 from sim.dynamics import drone_dynamics
 from sim.dynamics import drone_dynamics2
-from numba import njit,int32, float64
+from numba import njit,int32, float64, jit
 from numba.typed import List
 from numba.types import ListType
 from numba.experimental import jitclass
@@ -216,7 +216,7 @@ class VectorEnvironment:
 
         if done:
             position, observation = self.envs[env_id].reset()
-            reward -= 100
+            reward -= 100 # -20 (position)
 
         return position, observation, reward, done
 
@@ -235,10 +235,15 @@ class VectorEnvironment:
             observations_[i] = self.envs[i].get_observation()
 
         return observations_
+    
 
 
 
-class BaseEnvironment:
+
+
+class BaseEnvironment: # this is the working one, for test purposes leaving it out!
+
+    
 
     def __init__(self):
 
@@ -249,7 +254,7 @@ class BaseEnvironment:
         #self.initial_state = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0])
         self.state = np.empty(16)
 
-        for i in range(12):
+        """for i in range(12):
             if i == 0:
                 self.state[i] = random.uniform(-6.0, 6.0) 
             
@@ -261,6 +266,29 @@ class BaseEnvironment:
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
+        """
+
+        for i in range(12):
+            if i == 0:
+                self.state[i] = random.uniform(-9.7, 11.7) 
+            
+            elif i == 1:
+                self.state[i] = random.uniform(-9.7, 9.7) 
+
+            elif i == 2:
+                self.state[i] = random.uniform(0.3, 3.7)
+            elif 2 < i < 5:
+                self.state[i] = random.uniform(-3,3)
+            else:
+                self.state[i] = random.uniform(-0.001, 0.001)
+
+            """elif 2 < i < 6:
+                self.state[i] = random.uniform(-0.05, 0.05) # -0.001, 0.001
+            elif 5 < i < 9:
+                self.state[i] = random.uniform(-0.05, 0.05)
+            elif 8 < i < 12:
+                self.state[i] = random.uniform(-0.05, 0.05)"""
+
         #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
         
         
@@ -286,16 +314,24 @@ class BaseEnvironment:
         self.gates.add_gate([-1.5, -1.0, 2.0], [-1.0])
         self.gates.add_gate([-3.0, -2.0, 1.0], [-1.0])"""
 
-        self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
-        self.gates.add_gate([3.0, 3.0, 1.0], [-2.0])
-        self.gates.add_gate([2.0, -2.0, 2.0], [-1.0])
-        self.gates.add_gate([-2.0, -3.0, 2.0], [-1.0])
-        self.gates.add_gate([-2.0, -3.0, 1.0], [1.0])
-        self.gates.add_gate([0.0, 0.0, 1.0], [-1.0])
-        self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])
-        #self.gates.add_gate([-3.0, -3.0, 1.0], [2.0])
+        #self.gates.add_gate([-3.0, 3.0, 1.0], [1.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        #self.gates.add_gate([3.0, 3.0, 1.0], [-2.0])
+        #self.gates.add_gate([2.0, -2.0, 2.0], [-1.0])
+        #self.gates.add_gate([-2.0, -3.0, 2.0], [-1.0])
+        #self.gates.add_gate([-2.0, -3.0, 1.0], [1.0])
+        #self.gates.add_gate([0.0, 0.0, 1.0], [-1.0])
+        #self.gates.add_gate([-2.0, -2.0, 1.0], [-1.0])
 
-        self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
+        self.gates.add_gate([8.0, -3.0, 1.0], [-2.0]) # 1.0 (x up), -1.0 (x down), 2.0 (y up), -2.0 (y down)
+        self.gates.add_gate([-4.0, -7.0, 2.0], [-1.0])
+        self.gates.add_gate([-4.0, -7.0, 1.0], [1.0])
+        self.gates.add_gate([4.0, 0.0, 2.5], [2.0])
+        self.gates.add_gate([-4.0, 7.0, 1.0], [-1.0])
+        self.gates.add_gate([-4.0, 0.0, 1.5], [1.0])
+        self.gates.add_gate([5.0, 5.0, 2.0], [1.0])
+        
+
+        
 
         #for i in range(12, 15):
         #    self.state[i] = self.gates.gates[1][i-12] - self.state[i-12]
@@ -306,15 +342,16 @@ class BaseEnvironment:
         self.dic = {-2.0: np.array([0.0, -1.0, 0.0]), -1.0: np.array([-1.0, 0.0, 0.0]), 1.0: np.array([1.0, 0.0, 0.0]), 2.0: np.array([0.0, 1.0, 0.0])}
         """
         self.vec = np.empty(3)
-
-        for i in range(3):
+        """
+        """for i in range(3):
             x, y, z, k = random.uniform(-3.5, 3.5), random.uniform(-3.5, 3.5), random.choice([1.0, 2.0]), random.choice([-2.0, -1.0, 1.0, 2.0])
-            self.gates.add_gate([x, y, z], [k])
-
+            self.gates.add_gate([x, y, z], [k])"""
+        """
         for i in range(12, 15):
             self.state[i] = - self.gates.gates[1][i-12] + self.state[i-12]
             self.vec[i-12] = self.state[i]"""
         
+        self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
 
 
         vec = np.empty(3)
@@ -385,10 +422,10 @@ class BaseEnvironment:
             np.ndarray: Sate of the environment.
         """
 
-        #self.gates = GateFinder()
+        #self.gates = GateFinder()#
 
         self.state = np.empty(16)
-        for i in range(12):
+        """for i in range(12):
             if i == 0:
                 self.state[i] = random.uniform(-6.0, 6.0) 
             
@@ -396,10 +433,32 @@ class BaseEnvironment:
                 self.state[i] = random.uniform(-6.0, 6.0) 
 
             elif i == 2:
-                self.state[i] = random.uniform(0.1, 2.9) 
+                self.state[i] = random.uniform(-0.9, 3.9) 
 
             else:
                 self.state[i] = random.uniform(-0.001, 0.001)
+        """
+
+        for i in range(12):
+            if i == 0:
+                self.state[i] = random.uniform(-9.7, 11.7) 
+            
+            elif i == 1:
+                self.state[i] = random.uniform(-9.7, 9.7) 
+
+            elif i == 2:
+                self.state[i] = random.uniform(0.3, 3.7)
+            elif 2 < i < 5:
+                self.state[i] = random.uniform(-1, 1)
+            else:
+                self.state[i] = random.uniform(-0.001, 0.001)
+
+            """elif 2 < i < 6:
+                self.state[i] = random.uniform(-0.05, 0.05) # -0.001, 0.001
+            elif 5 < i < 9:
+                self.state[i] = random.uniform(-0.05, 0.05)
+            elif 8 < i < 12:
+                self.state[i] = random.uniform(-0.05, 0.05)"""
 
         #self.state = np.array([2.0, 0.0, 1.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
@@ -407,9 +466,10 @@ class BaseEnvironment:
         #self.quaternion = self.initial_quat.copy()
 
 
-        #for i in range(8):
-        #    x, y, z, k = random.uniform(-2.5, 2.5), random.uniform(-2.5, 2.5), 1.0, random.choice([-2.0, -1.0, 1.0, 2.0])
-        #    self.gates.add_gate([x, y, z], [k])
+        """for i in range(3):#
+            x, y, z, k = random.uniform(-2.5, 2.5), random.uniform(-2.5, 2.5), 1.0, random.choice([-2.0, -1.0, 1.0, 2.0])#
+            self.gates.add_gate([x, y, z], [k])#
+            #print(x, y, z, k)"""
         
         self.gates.move_closest_pair_to_front([self.state[0], self.state[1], self.state[2]])
 
